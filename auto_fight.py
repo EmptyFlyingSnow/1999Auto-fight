@@ -10,13 +10,9 @@ temp=lis.pop(1)
 
 #自动战斗
 test=[['a',1],['a',2],['a',1],['a',1],['b',2]]
+#测试用序列
 
 def 伤害计算(card):
-    '''
-    print('card:',card)
-    print("card[0]: ",card[0])
-    print("card[0][-1]:",card[0][-1])
-    print("card[0][-1]==3:",card[0][-1]==3)'''
     if card[0][-1]=='3':
         return 大招伤害计算(card)
     else:
@@ -45,10 +41,6 @@ def is_double(lists,summ,time):#判断合卡升星操作
     #在某些特殊序列的合卡操作下，我认为这个函数可能无法完全完成合卡判断
     #此失误可能会对出牌选择产生影响，但总体而言应该不会彻底妨碍战斗的顺利经行
     for i in range(len(lists)-1):
-        '''
-        print('len:{}',format(len(lists)-1))
-        print('i:{}'.format(i))
-        print('list:{}'.format(lists))'''
         if i>=(len(lists)-1):
             continue
         if lists[i][0]==lists[i+1][0] and lists[i][1]==lists[i+1][1] and lists[i][1]<3:
@@ -104,11 +96,6 @@ def movecard(lis,temp,sec):
         #a=[temp]
         
         lists=lis[:i]+[temp]+lis[i:]
-        #print()
-        #print('第{}次移动'.format(i))
-        #print(lis[:i],'+',temp,'+',lis[i:])
-        #print(lis,temp)
-        #print(lists)
         lists,summ,wait=is_double(lists,summ,wait)
         if summ>best:
             best=summ
@@ -162,7 +149,6 @@ def search_card(card_list,times):
         numberma=0
         
         listma,summa,numberma,waitma=movecard(listma,temp,i)
-#####################
         
         if summa>besta:
             besta=summa
@@ -198,18 +184,10 @@ def search_card(card_list,times):
                 
                 tempb=copy(temp)
                 
-                '''
-                print('使用',temp)
-                print("手牌组:",listaa)
-                print('使用结束：',listb)
-                print('伤害：',sumb)
-                print()'''
-                
 
             bestc=0
             
             summb=0
-            #listmb=[]
             numbermb=0
             listmb,summb,numbermb,waitmb=movecard(listmb,temp,j)
             if summb>bestb:
@@ -218,13 +196,6 @@ def search_card(card_list,times):
                 listbb=copy(listmb)
                 
                 use['b']=(j,numberb,timeb,'mov',(j+1,numbermb),listaa)
-                
-                '''
-                print('移动',temp)
-                print("手牌组",listb)
-                print('移动结束：',listmb)
-                print('伤害：',summb)
-                print()'''
                 
             
             numberc=len(listbb)
@@ -246,16 +217,7 @@ def search_card(card_list,times):
                     use['c']=(k,numberc,timec,'use',(),listcc)
                     
                     tempc=copy(temp)
-                    '''
-                    print('使用',temp)
-                    print("手牌组:",listbb)
-                    print('使用结束：',listc)
-                    print('伤害：',sumc)
-                    print()'''
-                    
-                #
                 summc=0
-                #listmc=[]
                 numbermc=0
                 listmc,summc,numbermc,waitmc=movecard(listmc,temp,k)
                 if summc>bestc:
@@ -263,7 +225,7 @@ def search_card(card_list,times):
                     timec=waitmc+1
                     listcc=copy(listmc)
                     use['c']=(k,numberc,timec,'mov',(k+1,numbermc),listcc)
-                #
+                
 
     return use
 
@@ -283,35 +245,12 @@ def swipe(p1, p2):
         os.system(f'adb shell input touchscreen swipe {p1[0]} {p1[1]} {p2[0]} {p2[1]} 100'))
 
 
-"""
-def touch(a, b,size=(0,0)):
-    print(f'click {x} {y}')
-    #random.randrange(1,21)
-    x=a+size[0]*0.05*(random.random()-0.5)
-    y=b+size[1]*0.05*(random.random()-0.5)
-    print(os.system(f'adb shell input tap {x} {y}'))
 
-
-def touch(pointa,size=(0,0)):
-    print(f'click {pointa[0]} {pointa[1]}')
-    x=pointa[0]+size[0]*0.05*(random.random()-0.5)
-    y=pointa[1]+size[1]*0.05*(random.random()-0.5)
-    point=(x,y)
-    print(os.system(f'adb shell input tap {point[0]} {point[1]}'))
-
-
-def swipe(p1, p2,size=(0,0)):
-    print(f'swipe from  {p1[0]} {p1[1]} to {p2[0]} {p2[1]}')
-    print(
-        os.system(f'adb shell input touchscreen swipe {p1[0]} {p1[1]} {p2[0]} {p2[1]} 100'))
-"""
 def getcardxy(n):
     x=int(flx[n]*data['x']/1920+165/2)
     y=int(822*data['y']/1080+197/2)
     return (x,y)
 
-#use['c']=(k,numberc,timec,'use')
-#use['c']=(k,numberc,timec,'mov',(k,numbermc))
 def use(lis):
     ls=[]
     print('dic:',lis)
@@ -320,22 +259,17 @@ def use(lis):
         n=(8-v[1])+v[0]
         xy=getcardxy(n)
         ls.append((v[3],xy,v[2],v[4],v[5]))
-    #print('ls:',ls)
-    #for k,i,j,o,l in ls:
+
     for i in ls:
         print(i[0])
         if i[0]=='use':
             print("touch({})".format(i[1]))
-            #print(i[4])
-            #touch(i)
             touch(i[1])
         if i[0]=='mov':
             p1=getcardxy(i[3][0])
             p2=getcardxy(i[3][1])
             print('swipe({},{})'.format(p1,p2))
             
-            #print('mov {} to {}'.format(i[3][0],i[3][1]))
-            #print(i[4])
             swipe(p1, p2)
         print("time.sleep{}".format(i[2]))
         time.sleep(i[2])
@@ -346,8 +280,8 @@ def AAA():#测试函数，用于行动一步
     use(ccc)
 
 def onestep(team):#用于行动一步
-    ccc=search_card(search_cards(team),gettimes())
-    use(ccc)
+    a=search_card(search_cards(team),gettimes())
+    use(a)
 
 def activea():#测试函数，用于测试战斗逻辑
     while 1:
@@ -421,6 +355,8 @@ def getteam(br=False):
     return personallis
 
 def find(id: str, take=False):
+    #使用相似算法寻找图中位置
+    #（但不好用基本上用不了）
     if take:
         get_screen_shot()
     img = cv.imread("screenshot.png")
