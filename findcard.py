@@ -2,6 +2,7 @@ import cv2 as cv
 #import lib.api as api
 from cards.aname import card_reflect
 import os
+import numpy as np
 
 class Turn:
     buff: int = 0
@@ -82,7 +83,25 @@ def calculate(image1, image2):
     return degree
 
 
-def similar(image1, image2, size=(160, 210)):#计算图片相似度
+def ssim(y_true , y_pred):
+    u_true = np.mean(y_true)
+    u_pred = np.mean(y_pred)
+    var_true = np.var(y_true)
+    var_pred = np.var(y_pred)
+    std_true = np.sqrt(var_true)
+    std_pred = np.sqrt(var_pred)
+    R = 255
+    c1 = np.square(0.01*R)
+    c2 = np.square(0.03*R)
+    ssim = (2 * u_true * u_pred + c1) * (2 * std_pred * std_true + c2)
+    denom = (u_true ** 2 + u_pred ** 2 + c1) * (var_pred + var_true + c2)
+    return ssim / denom
+
+def sililar(image1, image2, size=(160, 210)):
+    a=ssim(image1 , image2)
+    return a
+'''
+def similar(image1, image2, size=(160, 210)):#计算图片相似度(直方图距离)
     if image1.size !=  0:
         cv.imwrite(f'image1.png',image1)
     else:
@@ -99,7 +118,7 @@ def similar(image1, image2, size=(160, 210)):#计算图片相似度
     for im1, im2 in zip(sub_image1, sub_image2):
         sub_data += calculate(im1, im2)
     sub_data = sub_data / 3
-    return sub_data
+    return sub_data'''
 
 def search_star(upper_left,imgname='screenshot.png'):#获取卡牌星级
     
@@ -109,7 +128,7 @@ def search_star(upper_left,imgname='screenshot.png'):#获取卡牌星级
     img3 = img[upper_left[1]-30:upper_left[1],upper_left[0]:upper_left[0] + width]
     
     height1, width1, dep1 = img3.shape
-    s=0
+    s=1
     a=img3[int(height1/2)][52]
     b=img3[int(height1/2)][96]
     c=img3[int(height1/2)][120]
@@ -171,8 +190,11 @@ def search_cards(character: list,imgname='screenshot.png'):#寻找卡牌
         best=0
         card=[]
         for j in cardshow[:-1]:
-            a=similar(cards[i][0],j[0])
-            if a > best and a>0.5:
+            #cv.imwrite('{}.png'.format(1),cards[i][0])
+            #cv.imwrite('{}.png'.format(2),j[0])
+            a=ssim(cards[i][0],j[0])
+            
+            if a > best and a>0.9:
                 best=a
                 card=(j[1],cards[i][1])#卡牌名称和星级
             #大招的星级识别
