@@ -17,7 +17,13 @@ def 伤害计算(card):
         return 大招伤害计算(card)
     else:
         summa=大招伤害计算(card)/5
+        if card[0][1]==0:
+            print('星级识别出错')
+            print('card：',card)
+            card[0][1]=1#卡牌的星级识别有概率识别出错
         a=card_reflect[card[0]][card[1]]
+        #print('card',card)
+        #print('a',a)
         summ=a[0]*a[1]
         summ+=summa
         return summ
@@ -62,6 +68,10 @@ def copy(lists):
         lis.append(i)
     return lis
 
+def similar(image1, image2, size=(160, 210)):
+    a=ssim(image1 , image2)
+    return a
+
 def gettimes(times=3):#剩余行动点
     return times
 """
@@ -90,6 +100,7 @@ def movecard(lis,temp,sec):
     number=0
     #print(len(lis))
     bestlist=[]
+    wait=0
     for i in range(len(lis)):
         summ=0
         wait=0
@@ -110,6 +121,7 @@ def movecard(lis,temp,sec):
         
 
 def search_card(card_list,times):
+    print(card_list)
     besta=0
     lista=card_list
     suma=0
@@ -139,11 +151,12 @@ def search_card(card_list,times):
             
             
             tempa=copy(temp)
+            '''
             print('使用',temp,)
             print("手牌组:",card_list)
             print('使用结束：',listaa)
             print('伤害：',suma)
-            print()
+            print()'''
         summa=0
         #listma=[]
         numberma=0
@@ -253,7 +266,7 @@ def getcardxy(n):
 
 def use(lis):
     ls=[]
-    print('dic:',lis)
+    #print('dic:',lis)
     for k,v in lis.items():
         
         n=(8-v[1])+v[0]
@@ -261,17 +274,17 @@ def use(lis):
         ls.append((v[3],xy,v[2],v[4],v[5]))
 
     for i in ls:
-        print(i[0])
+        #print(i[0])
         if i[0]=='use':
-            print("touch({})".format(i[1]))
+            #print("touch({})".format(i[1]))
             touch(i[1])
         if i[0]=='mov':
             p1=getcardxy(i[3][0])
             p2=getcardxy(i[3][1])
-            print('swipe({},{})'.format(p1,p2))
+            #print('swipe({},{})'.format(p1,p2))
             
             swipe(p1, p2)
-        print("time.sleep{}".format(i[2]))
+        #print("time.sleep{}".format(i[2]))
         time.sleep(i[2])
 
 
@@ -279,8 +292,9 @@ def AAA():#测试函数，用于行动一步
     ccc=search_card(search_cards(t.team),gettimes())
     use(ccc)
 
-def onestep(team):#用于行动一步
-    a=search_card(search_cards(team),gettimes())
+def onestep(cards,team,times=3):#用于行动一步
+    a=search_card(cards,gettimes())
+    #a=search_card(search_cards(team),gettimes())
     use(a)
 
 def activea():#测试函数，用于测试战斗逻辑
@@ -317,7 +331,7 @@ personnamelis=['Eternity', 'MedicinePocket', 'NewBabel', 'Anan', 'Sotheby', 'Dru
 
 def getteam(br=False):
     if br:
-        get_screen_shot()
+        get_screen_shot(ip)
     lis=[[[836,112],[1061,382]],
      [[1083,201],[1312,471]],
      [[1333,157],[1562,427]],
@@ -328,6 +342,7 @@ def getteam(br=False):
         #print('切分人物截图')
         a=lis[i]
         perlis.append(cut(a[0],a[1]))
+        #cv.imwrite('{}.png'.format(i),perlis[i])
     personlis=[]
     for i in personnamelis:
         #print("读取人物素材")
@@ -347,10 +362,12 @@ def getteam(br=False):
                 a=similar(i,j[0])
             except:
                 a=0
-            if a>best and a>0.5:
+            if a>best and a>0.9:
                 best=a
                 person=j[1]
-        personallis.append(person)
+        if best>0.5:
+            
+            personallis.append(person)
         #print(best)
     return personallis
 
@@ -403,13 +420,19 @@ def action(times=1):
     #逻辑顺序2：进入战斗后，检测行动点位置，行动点出现则认为行动已完成，可以开始出牌
     #逻辑顺序3：若未发现行动点，则尝试检测结束标志，若发现，则行动完成，行动次数+1
     
-    team=getteam()
+    team=getteam(1)
+    print('team:{}'.format(team))
+    get_screen_shot(ip)
     for i in range(times):
+        print('开始行动')
         #为多次行动做准备
         is_restart()
         a=cut([1375,945],[1820,1019])
-        aa=similar(mrstart,cv.imread('carda/action1.png'))
-        bb=similar(mrstart,cv.imread('carda/action2.png'))
+        cv.imshow('a',a)
+        #mrstart
+        aa=similar(a,cv.imread('carda/action1.png'))
+        bb=similar(a,cv.imread('carda/action2.png'))
+        print(aa,bb)
         if aa > 0.5 or bb>0.5:
             touch((1598,952))#点击开始作战按钮，进入战斗
             fight(team)
@@ -438,24 +461,49 @@ def action(times=1):
     return 0
 
 def fight(team):
+    imgwin=cv.imread('carda/win.png')
+    touch((980,295))
+    time.sleep(10)
+    touch((980,295))
     while True:
-        touch((980,295))
+        end=cut([1100,50],[1650,350])
+        c=similar(end,imgwin)
+        if c>0.95:
+            print('战斗获胜')
+            break
+        
         a=get_screen_shot(ip)
         if a==False:
             continue
         ls=[]
         imgm=cv.imread('carda/disappear.png')
+        
         for i in range(3):
-            a=cut([802+(101+29)*i,224],[802+101+(101+29)*i,365],imgname="screenshot1.png",br='w',name=i)
-            b=similar(a.imgm)
+            #a=cut([802+(101+29)*i,224],[802+101+(101+29)*i,365],imgname="screenshot.png",br='w',name=i)
+            a=cut([802+(101+29)*i,224],[802+101+(101+29)*i,365])
+            #b=similar(a,imgm)
+            b=similar(a,imgm)
             ls.append(b)
-        if b[0]>0.5 and b[1]>0.5 and b[2]>0.5:
+        
+        strt=[]
+        for i in ls:
+            strt.append(i)
+        #print('行动点相似度',strt)
+        if ls[0]>0.95 and ls[1]>0.95 and ls[2]>0.95:
+            print('行动完成，开始出牌')
+            card=search_cards(team)
+            if len(card)<5:
+                print('未发现手牌')
+                time.sleep(5)
+                continue
+            print('手牌：',card)
             #认为行动完成，可以开始出牌
-            onestep(team)
+            onestep(card,team)
+            
         
         #准备添加战斗获胜结算界面
         #如果发现，break
-        time.sleep(1)
+        time.sleep(2)
 
 
     
@@ -476,28 +524,5 @@ def fight(team):
 #active()
 #AAA()
 
-name_to_english= {
-    '温妮弗雷德' : 'Eternity',
-    '兔毛手袋' : 'MedicinePocket',
-    '新巴别塔' : 'NewBabel',
-    '泥鯭的士' : 'Anan',
-    '新巴别塔' : 'NewBabel',
-    '苏芙比' : 'Sotheby',
-    '槲寄生' : 'Druvis',
-    '远旅' : 'Voyager',
-    '未锈铠' : 'Knight',
-    '红弩箭' : 'Lilya',
-    '星锑' : 'Regulus',
-    '百夫长' : 'Centurion',
-    '十四行诗' : 'Sonetto',
-    '夏利' : 'Charlie',
-    '气球派对' : 'BalloonParty',
-    '玛蒂尔达' : 'Matilda',
 
-}
-
-'''
-800,366
-903,223
-103,143'''
             
